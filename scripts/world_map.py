@@ -1,7 +1,10 @@
 import pandas as pd
 import numpy as np
 import folium
-
+import matplotlib.pyplot as plt
+import io
+import base64
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 import geopandas as gpd
 import pandas as pd
@@ -77,81 +80,106 @@ def pull_land(df, lat_col='Lat', lon_col='Lon', coastline_path="/home/inf-21-202
     
     return gdf.drop(columns=['geometry'])
 
+# Dictionary mapping original 'Admixture' column names to new names
+admixture_mapping = {
+    'Admixture1': 'NorthEastAsian',
+    'Admixture2': 'Mediterranean',
+    'Admixture3': 'SouthAfrican',
+    'Admixture4': 'SouthWestAsian',
+    'Admixture5': 'NativeAmerican',
+    'Admixture6': 'Oceanian',
+    'Admixture7': 'SouthEastAsian',
+    'Admixture8': 'NorthernEuropean',
+    'Admixture9': 'SubsaharanAfrican'
+}
+
+
+
+
 data = pd.read_csv("/home/inf-21-2024/binp29/population_genetic_project/data/03_plotting_data/final_plotting.csv")
-data = pull_land(data)
-data.to_csv("/home/inf-21-2024/binp29/population_genetic_project/data/03_plotting_data/final_plotting_pulled_to_land.csv",index=False)
+#data = pull_land(data)
+#data.to_csv("/home/inf-21-2024/binp29/population_genetic_project/data/03_plotting_data/final_plotting_pulled_to_land.csv",index=False)
 
 
 # Function to plot world map
 def plot_world_map(df, individual):
     test_df = df[df['individual'] == individual]
+    test_df = test_df.rename(columns=admixture_mapping)
     
     m = folium.Map(location=[test_df['Lat'].mean(), test_df['Lon'].mean()], zoom_start=3)
     
     for _, row in test_df.iterrows():
+        # Rename columns using the mapping dictionary
+        
+        
+        # Generate pie chart as an image string
+        pie_chart_img = generate_pie_chart(row)
+        
+        # Prepare the popup HTML with the pie chart and additional information
+        popup_html = f'''
+        <html>
+            <img src="data:image/png;base64,{pie_chart_img}" width="300" height="300">
+            <br><br>
+            Sample: {row['SAMPLE_ID']}<br>
+            Prediction: {row['Prediction']}<br>
+            Population: {row['Population']}<br>
+            Chromosome: {row['chromosome']}<br>
+            Segment: {row['segment']}
+        </html>
+        '''
+        
+        # Add marker to the map with the popup
         folium.Marker(
             location=[row['Lat'], row['Lon']],
-            popup=f"Sample: {row['SAMPLE_ID']}<br>Prediction: {row['Prediction']}<br>Population: {row['Population']}<br>Chromosome: {row['chromosome']}<br>Segment: {row['segment']}",
+            popup=folium.Popup(popup_html, max_width=400),
             icon=folium.Icon(color='blue')
         ).add_to(m)
     
     return m
 
-
-'''
-import streamlit as st
-import pandas as pd
-import folium
-import plotly.express as px
-import plotly.graph_objects as go
-from streamlit_folium import folium_static
-from folium.plugins import MarkerCluster
-import base64
-import tempfile
-
 def generate_pie_chart(row):
-    admixture_cols = [col for col in row.index if col.startswith("Admixture")]
+    admixture_cols = list(admixture_mapping.values())
+    
+    # Ensure the necessary columns exist in the row
+    if not all(col in row for col in admixture_cols):
+        raise KeyError(f"Missing columns for admixture: {admixture_cols}")
+    
     values = row[admixture_cols].values
     labels = admixture_cols
 
-    fig = go.Figure(data=[go.Pie(labels=labels, values=values, textinfo='percent+label')])
-    fig.update_layout(title=f"Admixture Proportions for {row['SAMPLE_ID']}")
+    # Check if the values sum to 100% (for percentage) or 1 (for proportion)
+    total = sum(values)
     
-    return fig
+    if total != 1:
+        # Normalize values to sum to 1 (for proportion) or 100% (for percentage)
+        values = [v / total for v in values]
 
-def plot_world_map(df, individual):
-    test_df = df[df['individual'] == individual]
+    threshold = 1e-04
+
+    # Filter out labels with zero values to avoid empty segments in the pie chart and legend
+    filtered_labels = [label for value, label in zip(values, labels) if value > threshold]
+    filtered_values = [value for value in values if value > threshold]
+
+    # Create the pie chart using matplotlib
+    fig, ax = plt.subplots()
+    wedges, _ = ax.pie(filtered_values, startangle=90, labels=None)  # No labels on the pie chart
+
+    # Add a legend only for the segments that are plotted
+    ax.legend(wedges, filtered_labels, title="Admixture Groups", loc="best", fontsize=8)
+
+    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+    # If proportions were adjusted, show a warning in the title
+    title = f"Admixture Proportions for {row['SAMPLE_ID']}"
     
-    m = folium.Map(location=[test_df['Lat'].mean(), test_df['Lon'].mean()], zoom_start=3)
-    marker_cluster = MarkerCluster().add_to(m)
+    ax.set_title(title)
 
-    for _, row in test_df.iterrows():
-        # Generate Pie Chart
-        pie_chart = generate_pie_chart(row)
-        
-        # Save Plotly Figure as an HTML file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as tmpfile:
-            pie_chart.write_html(tmpfile.name)
-            tmpfile.close()
-            with open(tmpfile.name, "r") as f:
-                html_string = f.read()
+    buf = io.BytesIO()
+    canvas = FigureCanvas(fig)
+    canvas.print_png(buf)
+    buf.seek(0)
 
-        # Convert HTML to base64
-        encoded_html = base64.b64encode(html_string.encode()).decode()
-        iframe = f'<iframe src="data:text/html;base64,{encoded_html}" width="350" height="350"></iframe>'
-
-        popup_html = f"""
-        <b>Sample:</b> {row['SAMPLE_ID']}<br>
-        <b>Prediction:</b> {row['Prediction']}<br>
-        <b>Population:</b> {row['Population']}<br>
-        {iframe}
-        """
-        
-        folium.Marker(
-            location=[row['Lat'], row['Lon']],
-            popup=folium.Popup(popup_html, max_width=400),
-            icon=folium.Icon(color='blue')
-        ).add_to(marker_cluster)
+    # Correct way to encode binary image data in base64
+    img_str = base64.b64encode(buf.getvalue()).decode("utf-8")
     
-    return m
-'''
+    return img_str

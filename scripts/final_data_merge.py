@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     merged_df.loc[mask, "Prediction"] = gps_df.loc[merged_df.index[mask],'Prediction']
     merged_df.loc[mask, 'Lat'] = gps_df.loc[merged_df.index[mask],'Lat']
-    merged_df.loc[mask, 'Lon'] = gps_df.loc[merged_df.index[mask],'Lon']
+    merged_df.loc[mask, 'Lon'] = gps_df.loc[merged_df.index[mask],'Lon']      
 
     gps_df.reset_index(inplace=True)
     merged_df.reset_index(inplace=True)
