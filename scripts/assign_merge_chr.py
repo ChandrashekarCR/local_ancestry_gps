@@ -79,11 +79,11 @@ def calculate_haversine_distances_by_sample(df):
     return df
 
 def merge_segments(group):
-    """
-    Merge consecutive segments within a sample based on geographic distances.
-    """
+    """Merge genomic segments within a given group."""
+    if len(group) == 0:
+        return pd.DataFrame()  # Return an empty DataFrame for empty groups
     if len(group) == 1:
-        return group
+        return group  # No merging needed
     
     merged = {
         'SAMPLE_ID': group['SAMPLE_ID'].iloc[0],
@@ -94,18 +94,21 @@ def merge_segments(group):
         'Prediction': list(group['Prediction'].unique()),
         'window': list(group['window'].unique()),
         'individual': group['individual'].min(),
+        'Lat': np.nan,
+        'Lon': np.nan,
+        'distance_to_next': group['distance_to_next'].mean()
     }
-    
+
+    # Compute geographic centroid
+    if 'Lat' in group and 'Lon' in group:
+        merged['Lat'], merged['Lon'] = geographic_center((group['Lat'].tolist(), group['Lon'].tolist()))
+
+    # Average admixture values
     admixture_cols = [col for col in group.columns if col.startswith("Admixture")]
     for col in admixture_cols:
         merged[col] = group[col].mean()
-    
-    lat_list, lon_list = list(group['Lat']), list(group['Lon'])
-    merged['Lat'], merged['Lon'] = geographic_center((lat_list, lon_list))
-    merged['distance_to_next'] = group['distance_to_next'].mean()
-    
-    return pd.DataFrame([merged])
 
+    return pd.DataFrame([merged])
 
 if __name__ == "__main__":
     """
@@ -115,7 +118,7 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--gps_results", type=str, help="Directory containing GPS result files")
     parser.add_argument("-c", "--combined_df_path", type=str, help="Path to the combined dataframe file (CSV)")
     parser.add_argument("-o", "--output_path", type=str, help="Path to save the merged output dataframe")
-    parser.add_argument('-t','--threshold', type=float, help='Enter a value in km for mergeing chromosome segements',default=200)
+    parser.add_argument('-t','--threshold', type=float, help='Enter a value in km for merging chromosome segments', default=200)
     args = parser.parse_args()
     
     print("Loading the combined dataframe...")
@@ -124,33 +127,49 @@ if __name__ == "__main__":
     print("Processing the GPS files...")
     gps_df = process_gps_files(args.gps_results)
 
-    full_df = pd.concat([combined_df,gps_df],axis=1)
+    full_df = pd.concat([combined_df, gps_df], axis=1)
     full_df = full_df.loc[:, ~full_df.columns.duplicated()]
 
     temp_df = full_df.copy()
     temp_df['row'] = temp_df.groupby('Sample_id').cumcount()  # Assign row index (0-55)
-    temp_df.drop(columns=['GROUP_ID'],axis=1,inplace=True)
+    temp_df.drop(columns=['GROUP_ID'], axis=1, inplace=True)
 
     # Set MultiIndex
     temp_df = temp_df.set_index(['Sample_id', 'row']).sort_index()
     temp_df = temp_df[~temp_df['chromosome'].astype(str).str.contains(',')]
 
     print("Calculating Haversine distances...")
-    combined_df = calculate_haversine_distances_by_sample(temp_df)
+    temp_df = calculate_haversine_distances_by_sample(temp_df)
     
     threshold = args.threshold  # Set merging threshold in km
-    combined_df['merge_group'] = (combined_df['distance_to_next'] >= threshold).cumsum()
+    temp_df['merge_group'] = (temp_df['distance_to_next'] >= threshold).cumsum()
+
     
     print("Merging segments...")
-    merged_df = combined_df.groupby(['SAMPLE_ID', 'chromosome', 'merge_group'], group_keys=False).apply(merge_segments)
-    merged_df = merged_df.reset_index(drop=True).drop(columns=['merge_group'])
+
+    for _,group in temp_df.groupby(by=['SAMPLE_ID','chromosome','merge_group']):
+        print('Inside loop')
+        print(merge_segments(group))
+
+    #merged_segments = []
+    #for _, group in temp_df.groupby(['SAMPLE_ID', 'chromosome', 'merge_group']):
+    #    print(group)
+    #    merged_segments.append(merge_segments(group))
+    #print(merged_segments)
+    #merged_df = pd.concat(merged_segments, ignore_index=True)
+    #merged_df = merged_df.drop(columns=['merge_group', 'Sample_no'], errors='ignore')
+    #
+    #column_order = [
+    #    "SAMPLE_ID", "individual", "chromosome", "start_pos", "end_pos", 
+    #    "Prediction", "Population", "Lat", "Lon"
+    #] + list(merged_df.filter(like="Admixture").columns)
+    #
+    #merged_df = merged_df[column_order]
     
-    column_order = [
-        "SAMPLE_ID", "individual", "chromosome", "start_pos", "end_pos", 
-        "Prediction", "Population", "Lat", "Lon"
-    ] + list(merged_df.filter(like="Admixture").columns)
+    if not merged_df.empty:
+        merged_df.to_csv(args.output_path, index=False)
+        print(f"Processed data saved to {args.output_path}")
+    else:
+        print("No data to save. The merged DataFrame is empty.")
     
-    merged_df = merged_df[column_order]
-    merged_df.to_csv(args.output_path, index=False)
-    print(f"Processed data saved to {args.output_path}")
     print("Done!")
