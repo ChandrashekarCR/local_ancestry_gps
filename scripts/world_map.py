@@ -91,11 +91,12 @@ def plot_world_map(df, individual):
     for _, row in test_df.iterrows():
         folium.Marker(
             location=[row['Lat'], row['Lon']],
-            popup=f"Sample: {row['SAMPLE_ID']}<br>Prediction: {row['Prediction']}<br>Population: {row['Population']}",
+            popup=f"Sample: {row['SAMPLE_ID']}<br>Prediction: {row['Prediction']}<br>Population: {row['Population']}<br>Chromosome: {row['chromosome']}<br>Segment: {row['segment']}",
             icon=folium.Icon(color='blue')
         ).add_to(m)
     
     return m
+
 
 '''
 import streamlit as st
