@@ -4,9 +4,9 @@
 args <- commandArgs(trailingOnly=TRUE)
 
 # Check if correct number of arguments is provided
-#if(length(args) < 4) {
-#  stop("Usage: Rscript GPS.R <geo.csv> <gen.csv> <data.csv> <output_file>")
-#}
+if(length(args) < 4) {
+  stop("Usage: Rscript GPS_command_line.R <geo.csv> <gen.csv> <data.csv> <output_file>")
+}
 
 # Assign command-line arguments
 geo_file <- args[1]
@@ -16,8 +16,8 @@ output_file <- args[4]
 
 #geo_file <- "/home/inf-21-2024/binp29/population_genetic_project/data/02_GPS/geo.csv"
 #gen_file <- "/home/inf-21-2024/binp29/population_genetic_project/data/02_GPS/gen.csv"
-#data_file <- "/home/inf-21-2024/binp29/population_genetic_project/data/02_GPS/gps_file/data_1.csv"
-#output_file <- "/home/inf-21-2024/binp29/population_genetic_project/data/02_GPS/gps_results/output_data1.txt"
+#data_file <- "/home/inf-21-2024/binp29/population_genetic_project/data/03_plotting_data/renamed_merged_data.csv"
+#output_file <- "/home/inf-21-2024/binp29/population_genetic_project/data/03_plotting_data/output_data1.txt"
 
 
 

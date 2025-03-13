@@ -47,11 +47,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run GPS analysis on multiple CSV files in parallel.")
     
     # Define command-line arguments
-    parser.add_argument("data_directory", help="Directory containing the data CSV files")
-    parser.add_argument("geo_file", help="Path to the geo.csv file")
-    parser.add_argument("gen_file", help="Path to the gen.csv file")
-    parser.add_argument("output_directory", help="Directory to store the output results")
-    parser.add_argument("rscript_file", help="Path to the R script to run")
+    parser.add_argument('-d',"--data_directory", help="Directory containing the data CSV files")
+    parser.add_argument('-go',"--geo_file", help="Path to the geo.csv file")
+    parser.add_argument('-ge',"--gen_file", help="Path to the gen.csv file")
+    parser.add_argument('-o',"--output_directory", help="Directory to store the output results")
+    parser.add_argument('-r',"--rscript_file", help="Path to the R script to run")
     
     # Parse the arguments
     args = parser.parse_args()
