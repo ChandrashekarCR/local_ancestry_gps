@@ -111,31 +111,42 @@ def plot_world_map(df, individual):
     for _, row in test_df.iterrows():
         # Rename columns using the mapping dictionary
         
-        
         # Generate pie chart as an image string
         pie_chart_img = generate_pie_chart(row)
         
         # Prepare the popup HTML with the pie chart and additional information
         popup_html = f'''
         <html>
-            <img src="data:image/png;base64,{pie_chart_img}" width="300" height="300">
+            <style>
+                body {{
+                    font-size: 16px;  /* Increase text size */
+                    font-family: Arial, sans-serif;
+                }}
+                .info {{
+                    font-size: 18px;  /* Increase text size of the info */
+                }}
+            </style>
+            <img src="data:image/png;base64,{pie_chart_img}" width="500" height="500">
             <br><br>
-            Sample: {row['SAMPLE_ID']}<br>
-            Prediction: {row['Prediction']}<br>
-            Population: {row['Population']}<br>
-            Chromosome: {row['chromosome']}<br>
-            Segment: {row['segment']}
+            <div class="info">
+                Sample: {row['SAMPLE_ID']}<br>
+                Prediction: {row['Prediction']}<br>
+                Population: {row['Population']}<br>
+                Chromosome: {row['chromosome']}<br>
+                Segment: {row['segment']}
+            </div>
         </html>
         '''
         
         # Add marker to the map with the popup
         folium.Marker(
             location=[row['Lat'], row['Lon']],
-            popup=folium.Popup(popup_html, max_width=400),
+            popup=folium.Popup(popup_html, max_width=550),
             icon=folium.Icon(color='blue')
         ).add_to(m)
     
     return m
+
 
 def generate_pie_chart(row):
     admixture_cols = list(admixture_mapping.values())
@@ -161,18 +172,17 @@ def generate_pie_chart(row):
     filtered_values = [value for value in values if value > threshold]
 
     # Create the pie chart using matplotlib
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10, 10), dpi=200)  # Increase figure size and resolution
     wedges, _ = ax.pie(filtered_values, startangle=90, labels=None)  # No labels on the pie chart
 
-    # Add a legend only for the segments that are plotted
-    ax.legend(wedges, filtered_labels, title="Admixture Groups", loc="best", fontsize=8)
+    # Remove the legend title and make the legend box less opaque
+    ax.legend(wedges, filtered_labels, loc="best", fontsize=20, title=None, framealpha=0.5)
 
     ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
 
     # If proportions were adjusted, show a warning in the title
     title = f"Admixture Proportions for {row['SAMPLE_ID']}"
-    
-    ax.set_title(title)
+    ax.set_title(title, fontsize=32)
 
     buf = io.BytesIO()
     canvas = FigureCanvas(fig)

@@ -30,14 +30,14 @@ if uploaded_file:
     filtered_df = filtered_df[cols_order]
     
     st.subheader(f"Full Data for {selected_individual}")
-    st.dataframe(filtered_df)  # Display the updated dataframe
+    st.dataframe(filtered_df, width=1000, height=500)  # Adjust width and height for dataframe
     
     # Chromosome Visualization
     st.subheader("Chromosome Visualization")
     fig = plot_chromosome(filtered_df, selected_individual)
-    st.plotly_chart(fig, use_container_width=True)
-
+    st.plotly_chart(fig, use_container_width=True)  # Increase plot size using container width
+    
     # World Map of Samples
     st.subheader("World Map of Samples")
     world_map = plot_world_map(filtered_df, selected_individual)
-    folium_static(world_map)
+    folium_static(world_map, width=800, height=800)  # Increase size of folium map
