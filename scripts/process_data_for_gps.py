@@ -49,6 +49,7 @@ def process_q_files(q_files_dir, fam_df):
         file_path = os.path.join(q_files_dir, file)
         df = pd.read_csv(file_path, sep=" ", header=None)
 
+        # Remember to uncomment this!!!
         if len(df) != len(fam_df):
             print(f"Warning: {file} has {len(df)} individuals, but FAM file has {len(fam_df)}. Skipping.")
             continue
@@ -83,7 +84,7 @@ def save_chunks(combined_df, output_dir):
     print(f"Saved data in {len(combined_df) // chunk_size} chunks.")
 
 
-def extract_chromosome_info(bim_file):
+def extract_chromosome_info(bim_file,window_size):
     try:
         bim_df = pd.read_csv(bim_file, sep="\t", header=None, names=["chr", "snp", "cm", "pos", "a1", "a2"])
     except Exception as e:
@@ -92,15 +93,25 @@ def extract_chromosome_info(bim_file):
 
     unique_chromosomes_per_chunk = {}
 
-    for i in range(0, len(bim_df), 500):
-        chunk = bim_df.iloc[i:i + 500]
-        unique_chromosomes_per_chunk[f"{i//500+1}"] = {
+    for i in range(0, len(bim_df), window_size):
+        chunk = bim_df.iloc[i:i + window_size]
+        unique_chromosomes_per_chunk[f"{i//window_size+1}"] = {
             "chromosomes": ",".join(map(str, chunk["chr"].unique())),
             "start_pos": chunk["pos"].iloc[0],
             "end_pos": chunk["pos"].iloc[-1]
         }
 
-    return unique_chromosomes_per_chunk
+    # Create a mapping dictionary for chromosome, start, and end positions
+    mapped_info = {
+        k: {
+            "chromosome": ",".join(map(str, v["chromosomes"])),
+            "start_pos": v["start_pos"],
+            "end_pos": v["end_pos"]
+        } 
+    for k, v in unique_chromosomes_per_chunk.items()
+    }
+
+    return mapped_info
 
 
 def map_chromosome_info_to_combined_df(combined_df, mapped_info):
@@ -118,11 +129,12 @@ if __name__ == '__main__':
     parser.add_argument('-q', '--q_files_dir', type=str, required=True, help='Directory containing .Q files')
     parser.add_argument('-o', '--output_dir', type=str, required=True, help='Directory to save the output CSV chunks')
     parser.add_argument('-b', '--bim_file', type=str, required=True, help='Path to the .bim file')
+    parser.add_argument('-w','--window_size',type=int,required=True,default=500,help='Enter the value of the window size used to create the Q files. The default is set to 500.')
     parser.add_argument('-o2', '--output_dir_2', type=str, required=True, help='Directory to save final data with chromosome info')
 
     args = parser.parse_args()
 
-    print("\nStarting processing...\n")
+    print("Starting processing...")
 
     fam_df = process_fam_file(args.fam_file)
     print("Processed FAM file")
@@ -133,7 +145,7 @@ if __name__ == '__main__':
     save_chunks(combined_df, args.output_dir)
     print("Saved chunked data")
 
-    mapped_info = extract_chromosome_info(args.bim_file)
+    mapped_info = extract_chromosome_info(args.bim_file,args.window_size)
     print("Extracted chromosome info")
 
     final_df = map_chromosome_info_to_combined_df(combined_df, mapped_info)

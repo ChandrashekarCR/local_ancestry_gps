@@ -131,11 +131,11 @@ if __name__ == "__main__":
     full_df = full_df.loc[:, ~full_df.columns.duplicated()]
 
     temp_df = full_df.copy()
-    temp_df['row'] = temp_df.groupby('Sample_id').cumcount()  # Assign row index (0-55)
+    temp_df['row'] = temp_df.groupby('SAMPLE_ID').cumcount()  # Assign row index (0-55)
     temp_df.drop(columns=['GROUP_ID'], axis=1, inplace=True)
 
     # Set MultiIndex
-    temp_df = temp_df.set_index(['Sample_id', 'row']).sort_index()
+    temp_df = temp_df.set_index(['SAMPLE_ID', 'row']).sort_index()
     temp_df = temp_df[~temp_df['chromosome'].astype(str).str.contains(',')]
 
     print("Calculating Haversine distances...")
@@ -144,27 +144,22 @@ if __name__ == "__main__":
     threshold = args.threshold  # Set merging threshold in km
     temp_df['merge_group'] = (temp_df['distance_to_next'] >= threshold).cumsum()
 
-    
     print("Merging segments...")
+    # Apply merging function only within the same SAMPLE_ID and chromosome
+    merged_df = temp_df.groupby(['SAMPLE_ID', 'chromosome', 'merge_group'], group_keys=False).apply(merge_segments)
 
-    for _,group in temp_df.groupby(by=['SAMPLE_ID','chromosome','merge_group']):
-        print('Inside loop')
-        print(merge_segments(group))
+    # Flatten the DataFrame structure
+    merged_df = merged_df.reset_index(drop=True).drop(columns=['merge_group', 'Sample_no'], errors='ignore')
 
-    #merged_segments = []
-    #for _, group in temp_df.groupby(['SAMPLE_ID', 'chromosome', 'merge_group']):
-    #    print(group)
-    #    merged_segments.append(merge_segments(group))
-    #print(merged_segments)
-    #merged_df = pd.concat(merged_segments, ignore_index=True)
-    #merged_df = merged_df.drop(columns=['merge_group', 'Sample_no'], errors='ignore')
-    #
-    #column_order = [
-    #    "SAMPLE_ID", "individual", "chromosome", "start_pos", "end_pos", 
-    #    "Prediction", "Population", "Lat", "Lon"
-    #] + list(merged_df.filter(like="Admixture").columns)
-    #
-    #merged_df = merged_df[column_order]
+    # Define the desired column order
+    column_order = [
+        "SAMPLE_ID", "individual", "chromosome", "start_pos", "end_pos", 
+        "Prediction", "Population", "Lat", "Lon"
+    ] + list(merged_df.filter(like="Admixture").columns)
+
+    # Reorder columns
+    merged_df = merged_df[column_order]
+
     
     if not merged_df.empty:
         merged_df.to_csv(args.output_path, index=False)

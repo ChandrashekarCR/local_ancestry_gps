@@ -54,7 +54,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', "--data_file", required=True, help="Full merged data file")
     parser.add_argument('-o', "--output_directory", required=True, help="Directory to store the output results")
     parser.add_argument('-s', "--chunk_size", type=int, default=1000, help="Number of rows per split file (default: 1000)")
-    parser.add_argument('-o2','--split_files',required=True,help='Enter another directory to svae the split files')
+    parser.add_argument('-o2','--split_files',required=True,help='Enter another directory to save the split files')
 
     args = parser.parse_args()
 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     merged_df.rename(columns={'Population': 'GROUP_ID'}, inplace=True)
     merged_df['GROUP_ID'] = merged_df['GROUP_ID'].astype(str)
 
-    processed_file = os.path.join(args.output_directory, "renamed_merged_data_gps_file.csv")
+    processed_file = os.path.join(args.output_directory, "renamed_merged_data_for_gps_file.csv")
     merged_df.to_csv(processed_file, index=False)
     print(f"Renamed data saved to: {processed_file}")
 
