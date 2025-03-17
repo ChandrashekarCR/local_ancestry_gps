@@ -8,7 +8,6 @@ from shapely.geometry import Point
 from scipy.spatial import cKDTree
 from geopy.distance import geodesic
 from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut
 import reverse_geocoder as rg
 import pycountry
 import pycountry_convert as pc

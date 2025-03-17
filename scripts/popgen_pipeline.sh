@@ -15,7 +15,7 @@ echo "Environment activated"
 
 # Step1: Prepare the data from the Q_file, bim and fam files to run the GPS algorithm
 echo "Preparing Q, bim and fam files for running GPS algorithm..."
-python3 $scripts/process_data_for_gps.py -f $data/01_raw_data/local_ancestry/merged.fam -q $data/01_raw_data/local_ancestry/q_files/ -w 500  -o $data/02_GPS/gps_file/ -b $data/01_raw_data/local_ancestry/merged.bim -o2 $data/01_raw_data/combined_data/
+python3 $scripts/process_data_for_gps.py -f $data/01_raw_data/local_ancestry/merged.fam -q $data/01_raw_data/local_ancestry_1000/q_files/ -w 1000  -o $data/02_GPS/gps_file/ -b $data/01_raw_data/local_ancestry/merged.bim -o2 $data/01_raw_data/combined_data/
 
 # Step2: Run GPS algorithm using parallel processing
 echo "Running GPS on multiple cores..."

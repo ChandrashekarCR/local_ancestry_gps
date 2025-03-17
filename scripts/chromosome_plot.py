@@ -242,7 +242,7 @@ def plot_chromosome_continent(df, individual):
             title_font=dict(size=18),
             tickfont=dict(size=14),
         ),
-        legend_title="Countries",
+        legend_title="Continents",
         legend_title_font=dict(size=18),
         legend_font=dict(size=18),
         hoverlabel=dict(

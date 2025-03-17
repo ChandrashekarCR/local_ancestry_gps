@@ -25,6 +25,22 @@ admixture_mapping = {
     'Admixture9': 'SubsaharanAfrican'
 }
 
+
+# Define a consistent color palette for admixture components
+admixture_colors = {
+    "NorthEastAsian": "#1f77b4",  # Blue
+    "Mediterranean": "#ff7f0e",  # Orange
+    "SouthAfrican": "#2ca02c",  # Green
+    "SouthWestAsian": "#d62728",  # Red
+    "NativeAmerican": "#9467bd",  # Purple
+    "Oceanian": "#8c564b",  # Brown
+    "SouthEastAsian": "#e377c2",  # Pink
+    "NorthernEuropean": "#7f7f7f",  # Gray
+    "SubsaharanAfrican": "#bcbd22"   # Yellow-green
+}
+
+
+
 color_map = {
     1: 'blue',
     2: 'red',
@@ -202,43 +218,41 @@ def plot_world_map(df, individual):
 
     return m
 
+
 def generate_pie_chart(row):
     admixture_cols = list(admixture_mapping.values())
 
-    # Ensure the necessary columns exist in the row
     if not all(col in row for col in admixture_cols):
         raise KeyError(f"Missing columns for admixture: {admixture_cols}")
     
     values = row[admixture_cols].values
     labels = admixture_cols
 
-    # Normalize values to sum to 1
     total = sum(values)
     if total != 1:
         values = [v / total for v in values]
 
-    threshold = 1e-04  # Ignore very small values
-    percent_threshold = 10  # Only annotate slices > 5%
+    threshold = 1e-04
+    percent_threshold = 10  
 
-    # Filter out labels with zero values
     filtered_labels = [label for value, label in zip(values, labels) if value > threshold]
     filtered_values = [value for value in values if value > threshold]
 
-    # Define a function to format percentage labels
+    # Use predefined colors, ensuring the same color is used for each admixture type
+    filtered_colors = [admixture_colors[label] for label in filtered_labels]
+
     def autopct_format(pct):
         return f"{pct:.1f}%" if pct > percent_threshold else ""
 
-    # Create the pie chart using matplotlib
-    fig, ax = plt.subplots(figsize=(10, 10), dpi=200)  # Large, high-res figure
+    fig, ax = plt.subplots(figsize=(10, 10), dpi=200)
     wedges, texts, autotexts = ax.pie(
         filtered_values, startangle=90, labels=None, 
-        autopct=autopct_format, textprops={'fontsize': 18, 'color': 'black'}
+        autopct=autopct_format, textprops={'fontsize': 18, 'color': 'black'}, colors=filtered_colors
     )
 
-    # Remove the legend title and make the legend box less opaque
     ax.legend(wedges, filtered_labels, loc="upper center", fontsize=20, title=None, framealpha=0.4, bbox_to_anchor=(0.5, -0.1))
     
-    ax.axis('equal')  # Ensure it's a perfect circle
+    ax.axis('equal')
     ax.set_title(f"Admixture Proportions for {row['SAMPLE_ID']}", fontsize=32)
 
     buf = io.BytesIO()
@@ -246,7 +260,6 @@ def generate_pie_chart(row):
     fig.savefig(buf, format="png", bbox_inches="tight", pad_inches=0.1)
     buf.seek(0)
 
-    # Encode binary image data in base64
     img_str = base64.b64encode(buf.getvalue()).decode("utf-8")
 
     return img_str
