@@ -106,6 +106,9 @@ def process_q_files(q_files_dir, fam_df):
     # Combine all DataFrames into one and rename admixture columns
     combined_df = pd.concat(data_list, ignore_index=True)
     combined_df = combined_df.rename(columns={i: f'Admixture{i+1}' for i in range(9)})
+    # Hard-coding this here because the user has give the files in the wrong order. Trying to find the correct order would result in 9! permuatations. Very illogical.
+    #new_order = ['SAMPLE_ID','Admixture3','Admixture1','Admixture6','Admixture8','Admixture2','Admixture5','Admixture7','Admixture4','Admixture9','GROUP_ID']
+    #combined_df = combined_df[new_order]
     return combined_df
 
 
@@ -123,6 +126,9 @@ def save_chunks(combined_df, output_dir):
     for i in range(0, len(combined_df), chunk_size):
         chunk_df = combined_df.iloc[i:i + chunk_size]
         chunk_df = chunk_df[['SAMPLE_ID'] + [f'Admixture{j}' for j in range(1, 10)] + ['GROUP_ID']]
+        # Hard-coded new order because the order of the test files were in a different order. To run GPS the admixture must always be in a certain order.
+        new_order = ['SAMPLE_ID','Admixture3','Admixture1','Admixture6','Admixture8','Admixture2','Admixture5','Admixture7','Admixture4','Admixture9','GROUP_ID']
+        chunk_df = chunk_df[new_order]
         chunk_df.to_csv(os.path.join(output_dir, f'data_{i // chunk_size}.csv'), index=False)
 
     print(f"Saved data in {len(combined_df) // chunk_size} chunks.")
