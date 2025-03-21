@@ -12,6 +12,7 @@ import reverse_geocoder as rg
 import pycountry
 import pycountry_convert as pc
 
+
 # Initialize geolocator
 geolocator = Nominatim(user_agent='popgen_project_version1')  # Change user_agent if you get a 403 error
 
@@ -221,23 +222,20 @@ if __name__ == "__main__":
     # Adjust points in water to nearest coastline
     print('Pulling points that are on water bodies or oceans to the nearest coastlines')
     merged_df = pull_land(merged_df, coastline_path=args.coastline, countries=args.water_points)  
-
-    # Get countries from hgdp.xlsx 
     print('Getting countries for each SAMPLE ID')
-    countries_df = pd.read_excel(countries_file)
-    countries_df.rename(columns={'ID': 'SAMPLE_ID'}, inplace=True)
-    countries_df['Country'] = countries_df['Country'].apply(lambda x: x.strip())
-    countries_df['Region'] = countries_df['Region'].apply(lambda x: x.strip())
 
     # Merge with the main DataFrame
-    merged_df = pd.merge(merged_df, countries_df[['SAMPLE_ID', 'Country', 'Region']], on='SAMPLE_ID', how='left')
+    #merged_df = pd.merge(merged_df, countries_df[['SAMPLE_ID', 'Country', 'Region']], on='SAMPLE_ID', how='left')
 
+    merged_df['Country'] = np.nan
+    merged_df['Region'] = np.nan
     # Fill missing values in 'Country' and 'Region' using Lat, Lon
     missing_country_mask = merged_df['Country'].isna()
     missing_region_mask = merged_df['Region'].isna()
 
+
     # Extract unique coordinates for geocoding
-    unique_coords = merged_df.loc[missing_country_mask, ['Lat', 'Lon']].drop_duplicates().values.tolist()
+    unique_coords = merged_df[['Lat', 'Lon']].drop_duplicates().values.tolist()
     unique_coords = [(lat, lon) for lat, lon in unique_coords]
     results = rg.search(unique_coords)
 
@@ -247,19 +245,19 @@ if __name__ == "__main__":
         for coord, result in zip(unique_coords, results)
     }
 
-    # Map results back to the original DataFrame
-    merged_df.loc[missing_country_mask, 'Country'] = merged_df.loc[missing_country_mask, ['Lat', 'Lon']].apply(
+    # Apply mapping to the DataFrame
+    merged_df['Country Code'] = merged_df.apply(
         lambda row: coord_to_country_region.get((row["Lat"], row["Lon"]), ("Unknown", "Unknown"))[0], axis=1
     )
-    merged_df.loc[missing_region_mask, 'Region'] = merged_df.loc[missing_region_mask, ['Lat', 'Lon']].apply(
+    merged_df['Region'] = merged_df.apply(
         lambda row: coord_to_country_region.get((row["Lat"], row["Lon"]), ("Unknown", "Unknown"))[1], axis=1
     )
 
-    # Convert country codes to full country names (only for rows where Country was filled using rg)
-    merged_df.loc[missing_country_mask, 'Country'] = merged_df.loc[missing_country_mask, 'Country'].apply(
-        lambda x: convert_country_code_to_name(x)
+    # Convert country codes to full country names
+    merged_df['Country'] = merged_df['Country Code'].apply(
+        lambda x: pycountry.countries.get(alpha_2=x).name if pycountry.countries.get(alpha_2=x) else "Unknown"
     )
-    
+
     merged_df['Continent'] = merged_df['Country'].apply(lambda x: get_continent_from_country(x))
 
     ## Reorder columns
@@ -268,7 +266,6 @@ if __name__ == "__main__":
             "Admixture1", "Admixture2", "Admixture3", "Admixture4", "Admixture5", 
             "Admixture6", "Admixture7", "Admixture8", "Admixture9"]
     merged_df = merged_df[cols]  # Reordering the DataFrame
-
     # Save the final DataFrame
     processed_file = os.path.join(args.output_directory, "final_plotting.csv")
     merged_df.to_csv(processed_file, index=False)

@@ -9,6 +9,8 @@ from folium import MacroElement
 from jinja2 import Template
 import plotly.express as px
 import geopandas as gpd
+import pycountry
+
 
 
 
@@ -279,16 +281,14 @@ def plot_world_map_country(country_plot_df, chromosome, shapefile_path):
     """
     # Filter data for the given chromosome
     chromosome_data = country_plot_df[country_plot_df['chromosome'] == chromosome]
-    print(chromosome_data)
     
     # Load world map shapefile
     world = gpd.read_file(shapefile_path)
-    
     # Merge world shapefile with chromosome data
     world = world.merge(chromosome_data, left_on='NAME', right_on='Country', how='left')
-    
     # Create a mask for countries that are in chromosome_data
     world['color'] = world['Country'].apply(lambda x: 'Chromosome Data' if pd.notnull(x) else 'Other')
+
     
     # Create hover text for additional details
     world['hover_text'] = world.apply(
@@ -307,8 +307,8 @@ def plot_world_map_country(country_plot_df, chromosome, shapefile_path):
                         locations=world.index,
                         color='color',
                         color_discrete_map={'Other': 'lightgray', 'Chromosome Data': 'blue'},
-                        hover_name='NAME',
-                        hover_data={'color': False, 'hover_text': True},
+                        hover_name=None,
+                        hover_data={'hover_text': True, 'color':False},
                         title=f'Chromosome {chromosome} Segments on World Map')
     
     # Add annotations for countries with data

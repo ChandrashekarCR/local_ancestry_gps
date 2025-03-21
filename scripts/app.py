@@ -575,6 +575,68 @@ test_data = {'SAMPLE_ID': {0: 'HGDP00660',
   24: 1,
   25: 2,
   26: 3}}
+country_mapping = {
+    'Iran, Islamic Republic of': 'Iran',
+    'Russian Federation': 'Russia',
+    'Syrian Arab Republic': 'Syria',
+    'Türkiye': 'Turkey',
+    'Viet Nam': 'Vietnam',
+    'Korea, Democratic People\'s Republic of': 'North Korea',
+    'Korea, Republic of': 'South Korea',
+    'Moldova, Republic of': 'Moldova',
+    'Palestine, State of': 'Palestine',
+    'Congo, The Democratic Republic of the': 'Dem. Rep. Congo',
+    'Tanzania, United Republic of': 'Tanzania',
+    'Lao People\'s Democratic Republic': 'Laos',
+    'Venezuela, Bolivarian Republic of': 'Venezuela',
+    'United States': 'United States of America',
+    'Bolivia, Plurinational State of': 'Bolivia',
+    'Brunei Darussalam': 'Brunei',
+    'Cape Verde': 'Cabo Verde',
+    'Czech Republic': 'Czechia',
+    'Swaziland': 'eSwatini',
+    'Gambia, The': 'Gambia',
+    'Micronesia, Federated States of': 'Micronesia',
+    'Burma': 'Myanmar',
+    'The Bahamas': 'Bahamas',
+    'The Gambia': 'Gambia',
+    'Trinidad and Tobago': 'Trinidad and Tobago',
+    'Falkland Islands (Malvinas)': 'Falkland Is.',
+    'Timor-Leste': 'Timor-Leste',
+    'Congo': 'Congo',
+    'Ivory Coast': "Côte d'Ivoire",
+    'Guinea-Bissau': 'Guinea-Bissau',
+    'Eq. Guinea': 'Equatorial Guinea',
+    'Central African Republic': 'Central African Rep.',
+    'South Sudan': 'S. Sudan',
+    'Western Sahara': 'W. Sahara',
+    'Bosnia and Herzegovina': 'Bosnia and Herz.',
+    'North Macedonia': 'North Macedonia',
+    'United Arab Emirates': 'United Arab Emirates',
+    'Saint Vincent and the Grenadines': 'Saint Vincent and the Grenadines',
+    'Antigua and Barbuda': 'Antigua and Barbuda',
+    'São Tomé and Príncipe': 'São Tomé and Principe',
+    'Comoros': 'Comoros',
+    'Saint Kitts and Nevis': 'Saint Kitts and Nevis',
+    'Saint Lucia': 'Saint Lucia',
+    'Seychelles': 'Seychelles',
+    'Andorra': 'Andorra',
+    'San Marino': 'San Marino',
+    'Liechtenstein': 'Liechtenstein',
+    'Monaco': 'Monaco',
+    'Malta': 'Malta',
+    'Marshall Islands': 'Marshall Islands',
+    'Nauru': 'Nauru',
+    'Palau': 'Palau',
+    'Tuvalu': 'Tuvalu',
+    'Vatican City': 'Vatican',
+    'Solomon Islands': 'Solomon Is.',
+    'New Zealand': 'New Zealand',
+    'Guinea Bissau': 'Guinea-Bissau',
+    'Dominican Republic': 'Dominican Rep.',
+    'United Kingdom': 'United Kingdom',
+    'Unknown': None  # Handle missing cases
+}
 
 # Convert test data to DataFrame
 test_df = pd.DataFrame(test_data)
@@ -614,6 +676,8 @@ uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 # Use test data if no file is uploaded
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
+    df['Country'] = df['Country'].apply(lambda x: country_mapping.get(x,x))
+
 else:
     df = test_df
 
