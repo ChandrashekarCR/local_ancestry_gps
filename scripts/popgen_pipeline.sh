@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Script to perfrom the complete local ancestry for individuals given Q_files, bim and fam files.
-
+# Note that the Q files must have the admixture prorpotions in this paricular order for te GPS algorithm to work. The algorithm will 
+# work regardless, but the results won't make any sense.
 data="/home/inf-21-2024/binp29/population_genetic_project/data" #"/home/inf-21-2024/binp29/GPS/GPS-original-code/data" #
 scripts="/home/inf-21-2024/binp29/population_genetic_project/scripts"
 
