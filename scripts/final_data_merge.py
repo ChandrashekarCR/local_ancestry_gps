@@ -263,8 +263,8 @@ if __name__ == "__main__":
     ## Reorder columns
     cols = ["SAMPLE_ID", "individual", "chromosome", "start_pos", "end_pos", "Prediction", "Population", 
             "Lat", "Lon", "Country", "Continent",  # Moving Country & Region after Lat & Lon
-            "Admixture1", "Admixture2", "Admixture3", "Admixture4", "Admixture5", 
-            "Admixture6", "Admixture7", "Admixture8", "Admixture9"]
+            "Admixture3", "Admixture1", "Admixture6", "Admixture8", "Admixture2", 
+            "Admixture5", "Admixture7", "Admixture4", "Admixture9"]
     merged_df = merged_df[cols]  # Reordering the DataFrame
     # Save the final DataFrame
     processed_file = os.path.join(args.output_directory, "final_plotting.csv")

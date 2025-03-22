@@ -738,12 +738,12 @@ if selected_individual != "None":
                 use_container_width=True
             )
 
-    # Rename Admixture Columns
+    # Rename Admixture Columns # Make the change in country names here.
     admix_mapping = {
-        'Admixture1': 'NORTHEASTASIAN', 'Admixture2': 'MEDITERRANIAN',
-        'Admixture3': 'SOUTHAFRICA', 'Admixture4': 'SOUTHWESTASIAN',
-        'Admixture5': 'NATIVEAMERICAN', 'Admixture6': 'OCEANIAN',
-        'Admixture7': 'SOUTHEASTASIA', 'Admixture8': 'NORTHERNEUROPEAN',
+        'Admixture3': 'NORTHEASTASIAN', 'Admixture1': 'MEDITERRANIAN',
+        'Admixture6': 'SOUTHAFRICA', 'Admixture8': 'SOUTHWESTASIAN',
+        'Admixture2': 'NATIVEAMERICAN', 'Admixture5': 'OCEANIAN',
+        'Admixture7': 'SOUTHEASTASIA', 'Admixture4': 'NORTHERNEUROPEAN',
         'Admixture9': 'SUBSAHARANAFRICA'
     }
     filtered_df.rename(columns=admix_mapping, inplace=True)

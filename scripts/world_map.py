@@ -9,21 +9,20 @@ from folium import MacroElement
 from jinja2 import Template
 import plotly.express as px
 import geopandas as gpd
-import pycountry
 
 
 
 
 # Dictionary mapping original 'Admixture' column names to new names
 admixture_mapping = {
-    'Admixture1': 'NorthEastAsian',
-    'Admixture2': 'Mediterranean',
-    'Admixture3': 'SouthAfrican',
-    'Admixture4': 'SouthWestAsian',
-    'Admixture5': 'NativeAmerican',
-    'Admixture6': 'Oceanian',
+    'Admixture3': 'NorthEastAsian',
+    'Admixture1': 'Mediterranean',
+    'Admixture6': 'SouthAfrican',
+    'Admixture8': 'SouthWestAsian',
+    'Admixture2': 'NativeAmerican',
+    'Admixture5': 'Oceanian',
     'Admixture7': 'SouthEastAsian',
-    'Admixture8': 'NorthernEuropean',
+    'Admixture4': 'NorthernEuropean',
     'Admixture9': 'SubsaharanAfrican'
 }
 
@@ -174,6 +173,7 @@ def add_legend(m):
 def plot_world_map(df, individual):
     test_df = df
     test_df = test_df.rename(columns=admixture_mapping)
+    print(test_df.iloc[:,8:])
     unique_chromosomes = test_df['chromosome'].unique()
 
     # Create the map centered around the mean latitude and longitude
