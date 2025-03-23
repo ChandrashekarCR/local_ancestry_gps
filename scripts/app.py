@@ -6,7 +6,7 @@ from chromosome_plot import plot_chromosome_segments, plot_chromosome_country, p
 from world_map import plot_world_map, plot_world_map_country, plot_world_map_continent
 
 
-# Hardcoded test data
+# Hardcoded test data - Some random values. Use the test data for better results.
 
 test_data = {'SAMPLE_ID': {0: 'HGDP00660',
   1: 'HGDP00660',
