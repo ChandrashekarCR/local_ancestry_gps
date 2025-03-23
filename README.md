@@ -33,6 +33,7 @@ bash popgen_pipeline.sh
 ```bash
 streamlit run app.py
 ```
+5. Upload the in data/03_plotting_data/final_plotting.csv on the website and visualize the results.
 
 ## Project Workflow
 
