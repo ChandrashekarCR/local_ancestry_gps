@@ -5,6 +5,9 @@ This project focuses on biogeographical analysis by determining an individual's 
 
 This pipeline processes Q_files, BIM, and FAM files, runs the GPS algorithm in parallel, merges segment predictions, and generates a dataset for visualization through a web application.
 
+## Author
+- [@ChandrashekarCR](https://github.com/ChandrashekarCR)
+
 ## Installation & Setup
 
 ### Prerequisites:
