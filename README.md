@@ -29,6 +29,10 @@ cd script/
 ```bash
 bash popgen_pipeline.sh
 ```
+4. Run the web application
+```bash
+streamlit run app.py
+```
 
 ## Project Workflow
 
